@@ -1,13 +1,12 @@
 import { Router } from 'express';
 import { middleware as query } from 'querymen';
-import { create, index, show, update, destroy } from './controller';
+import { create, index, update, all } from './controller';
 
 const router = new Router();
 
 router.get('/', query(), index);
+router.get('/all', all);
 router.post('/', create);
-router.get('/:id', show);
 router.put('/:id', update);
-router.delete('/:id', destroy);
 
 export default router;
