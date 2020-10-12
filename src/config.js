@@ -10,13 +10,6 @@ const config = {
     ip: process.env.IP || '0.0.0.0',
     apiRoot: process.env.API_ROOT || '',
     messageConfirmationWaiting: 5 // In seconds
-  },
-  test: {},
-  development: {
-  },
-  production: {
-    ip: process.env.IP || undefined,
-    port: process.env.PORT || 8080
   }
 };
 
