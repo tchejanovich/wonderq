@@ -1,13 +1,13 @@
-import { Mutex } from 'async-mutex';
+import { Mutex } from "async-mutex";
 
-import { messageConfirmationWaiting } from '../../config';
+import { messageConfirmationWaiting } from "../../config";
 
 let messagesStorage = {};
 let nextMessageId = 1;
 const mutex = new Mutex();
 
 const messages = () => Object.values(messagesStorage);
-const withMutex = async callback => await mutex.runExclusive(callback);
+const withMutex = async (callback) => await mutex.runExclusive(callback);
 
 // Used only for testing purposes
 const restart = () => {
@@ -46,14 +46,16 @@ const deleteMessage = async (messageId) =>
     return -1; // Result -1 means there is no consumed message with the specified messageId
   });
 
-const hasConsummationExpired = message => (Date.now() - message.consumedAt) >= messageConfirmationWaiting * 1000;
+const SECOND = 1000; // In miliseconds
+const hasConsummationExpired = (message) =>
+  Date.now() - message.consumedAt >= messageConfirmationWaiting * SECOND;
 
 const restoreUnconfirmed = async () =>
   await withMutex(async () => {
     messages().forEach((message) => {
       const { id, consumedAt } = message;
       if (consumedAt && hasConsummationExpired(message)) {
-        console.log('Restoring message', id);
+        console.log("Restoring message", id);
         message.consumedAt = undefined;
       }
     });
