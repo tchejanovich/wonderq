@@ -40,14 +40,13 @@ const deleteMessage = async (messageId) =>
     return -1; // Result -1 means there is no consumed message with the specified messageId
   });
 
+const hasConsummationExpired = message => (Date.now() - message.consumedAt) >= messageConfirmationWaiting * 1000;
+
 const restoreUnconfirmed = async () =>
   await withMutex(async () => {
     messages().forEach((message) => {
       const { id, consumedAt } = message;
-      if (
-        consumedAt &&
-      (Date.now() - consumedAt) * 1000 > messageConfirmationWaiting
-      ) {
+      if (consumedAt && hasConsummationExpired(message)) {
         console.log('Restoring message', id);
         message.consumedAt = undefined;
       }
