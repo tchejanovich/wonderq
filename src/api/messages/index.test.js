@@ -2,13 +2,10 @@ import request from 'supertest';
 import { apiRoot, messageConfirmationWaiting } from '../../config';
 import express from '../../services/express';
 import Storage from '../../services/storage';
+import { sleep } from '../../utils';
 import routes from '.';
 
 const app = () => express(apiRoot, routes);
-
-const sleep = (ms) => {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-};
 
 const testMessageBody = { testKey: 'Test value' };
 const sampleInsert = () =>

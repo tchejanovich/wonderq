@@ -1,6 +1,7 @@
-import { Mutex } from "async-mutex";
+import { Mutex } from 'async-mutex';
 
-import { messageConfirmationWaiting } from "../../config";
+import { messageConfirmationWaiting } from '../../config';
+import { sleep } from '../../utils';
 
 let messagesStorage = {};
 let nextMessageId = 1;
@@ -23,18 +24,23 @@ const insert = async (messageBody) =>
     return message;
   });
 
-const consume = async () =>
-  await withMutex(async () => {
-    const result = [];
-    messages().forEach((message) => {
-      if (!message.consumedAt) {
-        message.consumedAt = Date.now();
-        result.push(message);
-      }
-    });
+const consume = async () => await withMutex(async () => {
+  // Useful for concurrency test.
+  // Additional configuration may be required if the "sleep" function increases the tests execution time too much.
+  if (process.env.NODE_ENV === 'test') {
+    await sleep(250);
+  }
 
-    return result;
+  const result = [];
+  messages().forEach((message) => {
+    if (!message.consumedAt) {
+      message.consumedAt = Date.now();
+      result.push(message);
+    }
   });
+
+  return result;
+});
 
 const deleteMessage = async (messageId) =>
   await withMutex(async () => {
@@ -55,7 +61,7 @@ const restoreUnconfirmed = async () =>
     messages().forEach((message) => {
       const { id, consumedAt } = message;
       if (consumedAt && hasConsummationExpired(message)) {
-        console.log("Restoring message", id);
+        console.log('Restoring message', id);
         message.consumedAt = undefined;
       }
     });

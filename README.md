@@ -31,3 +31,13 @@ $ yarn test
 | `GET /messages`     | Pulls unconsumed messages          | None                                      | `[{"id":1,"body":{"mySampleMessageKey":"Sample value"},"consumedAt":1602532383892},{"id":2,"body":[{"myOtherSampleMessageKey":"Other sample value inside array"}],"consumedAt":1602532383892}]` |
 | `POST /messages`    | Inserts a new message on the queue | Body must be a valid JSON object or array | `{"id":1,"body":{"mySampleMessageKey":"Sample value"}`                                                                                                                                          |
 | `PUT /messages/:id` | Confirms message was consumed      | `:id` must be a valid message ID          | `{"id":1,"body":{"mySampleMessageKey":"Sample value"},"consumedAt":1602532544925}`                                                                                                              |
+
+## Taking the project to production
+
+In order to take the project to a productive environment, there are a few things that must be taken into account and added to de project:
+
+- **Database persistence:** it would be suitable to store the messages in a database, a non-relational one would be a good choice for this case. MongoDB or Redis could be a good fits depending on the specifics (or maybe the two of them combined).
+- **Environment configuration:** support multiple environments (development, test, production) to take the sensitive information out of the codebase.
+- **CI/CD**: develop a CI/CD pipeline to automate the deployment and test execution processes. Some good alternatives are CircleCI or Jenkins.. For a simple and quick setup, and to get something working quickly, CircleCI is a very good option. If something more complex is required, the company seeks to reduce costs and can afford a more time-consuming setup, Jenkins it's a good alternative.
+- **Docker container**: a Docker container is a good way to make it easier to build the machine we need to run the project in production.
+- **Cloud provider**: The cloud provider must be defined in order to take the project to production (on premise servers don't seem necessary here). While the project and the traffic are small, Heroku its a good option to start with. If the application gets bigger it would be a good idea to migrate to AWS, Google Cloud, or Azure.
