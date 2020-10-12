@@ -1,12 +1,5 @@
 import Storage from '../../services/storage';
-
-const withErrorHandler = async (res, requestLogic) => {
-  try {
-    await requestLogic();
-  } catch (error) {
-    res.status(500).send('Unexpected error');
-  }
-};
+import { withErrorHandler } from '../utils';
 
 export const create = async ({ body }, res) => {
   withErrorHandler(res, async () => {
