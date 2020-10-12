@@ -1,8 +1,8 @@
-import request from "supertest";
-import { apiRoot, messageConfirmationWaiting } from "../../config";
-import express from "../../services/express";
-import Storage from "../../services/storage";
-import routes from ".";
+import request from 'supertest';
+import { apiRoot, messageConfirmationWaiting } from '../../config';
+import express from '../../services/express';
+import Storage from '../../services/storage';
+import routes from '.';
 
 const app = () => express(apiRoot, routes);
 
@@ -10,23 +10,23 @@ const sleep = (ms) => {
   return new Promise((resolve) => setTimeout(resolve, ms));
 };
 
-const testMessageBody = { testKey: "Test value" };
+const testMessageBody = { testKey: 'Test value' };
+const sampleInsert = () =>
+  request(app()).post(`${apiRoot}`).send(testMessageBody);
 
 beforeEach(() => {
   Storage.restart();
 });
 
-test("POST /messages 201", async () => {
-  const { status, body: message } = await request(app())
-    .post(`${apiRoot}`)
-    .send(testMessageBody);
+test('POST /messages 201', async () => {
+  const { status, body: message } = await sampleInsert();
 
   expect(status).toBe(201);
-  expect(typeof message).toEqual("object");
+  expect(typeof message).toEqual('object');
   expect(message.body).toEqual(testMessageBody);
 });
 
-test("GET /messages 200 empty", async () => {
+test('GET /messages 200 empty', async () => {
   const { status, body } = await request(app()).get(`${apiRoot}`);
 
   expect(status).toBe(200);
@@ -34,10 +34,10 @@ test("GET /messages 200 empty", async () => {
   expect(body.length).toBe(0);
 });
 
-test("GET /messages 200 with messages", async () => {
-  await request(app()).post(`${apiRoot}`).send(testMessageBody);
-  await request(app()).post(`${apiRoot}`).send(testMessageBody);
-  await request(app()).post(`${apiRoot}`).send(testMessageBody);
+test('GET /messages 200 with messages', async () => {
+  await sampleInsert();
+  await sampleInsert();
+  await sampleInsert();
 
   const { status, body } = await request(app()).get(`${apiRoot}`);
 
@@ -49,10 +49,10 @@ test("GET /messages 200 with messages", async () => {
   expect(body[2].id).toBe(3);
 });
 
-test("GET /messages 200 with messages, dont consume same messages twice", async () => {
-  await request(app()).post(`${apiRoot}`).send(testMessageBody);
-  await request(app()).post(`${apiRoot}`).send(testMessageBody);
-  await request(app()).post(`${apiRoot}`).send(testMessageBody);
+test('GET /messages 200 with messages, dont consume same messages twice', async () => {
+  await sampleInsert();
+  await sampleInsert();
+  await sampleInsert();
 
   let { status, body } = await request(app()).get(`${apiRoot}`);
 
@@ -67,10 +67,10 @@ test("GET /messages 200 with messages, dont consume same messages twice", async 
   expect(body.length).toBe(0);
 });
 
-test("GET /messages 200 with messages, messages restored after no confirmation", async () => {
-  await request(app()).post(`${apiRoot}`).send(testMessageBody);
-  await request(app()).post(`${apiRoot}`).send(testMessageBody);
-  await request(app()).post(`${apiRoot}`).send(testMessageBody);
+test('GET /messages 200 with messages, messages restored after no confirmation', async () => {
+  await sampleInsert();
+  await sampleInsert();
+  await sampleInsert();
 
   let { status, body } = await request(app()).get(`${apiRoot}`);
 
@@ -91,11 +91,38 @@ test("GET /messages 200 with messages, messages restored after no confirmation",
   expect(body[2].id).toBe(3);
 });
 
-test("PUT /messages 200", async () => {
-  await request(app()).post(`${apiRoot}`).send(testMessageBody);
+test('GET /messages 200 concurrency test', async () => {
+  await sampleInsert();
+  await sampleInsert();
+
+  const AMOUNT_OF_CONCURRENT_REQUESTS = 10;
+  let bodysWithMessagesCount = 0;
+  let totalBodysCount = 0;
+
+  const requestPromise = () =>
+    request(app())
+      .get(`${apiRoot}`)
+      .then((response) => {
+        totalBodysCount++;
+        if (response.body.length > 0) {
+          bodysWithMessagesCount++;
+        }
+        return response.body;
+      });
+
+  await Promise.all(
+    [...Array(AMOUNT_OF_CONCURRENT_REQUESTS).keys()].map(() => requestPromise())
+  );
+
+  expect(totalBodysCount).toBe(AMOUNT_OF_CONCURRENT_REQUESTS);
+  expect(bodysWithMessagesCount).toBe(1);
+});
+
+test('PUT /messages 200', async () => {
+  await sampleInsert();
 
   const {
-    body: [firstMessage],
+    body: [firstMessage]
   } = await request(app()).get(`${apiRoot}`);
 
   const { id: firstMessageId } = firstMessage;
@@ -108,7 +135,7 @@ test("PUT /messages 200", async () => {
   expect(message).toEqual(firstMessage);
 });
 
-test("PUT /messages 404", async () => {
+test('PUT /messages 404', async () => {
   const nonExistentMessageId = 999;
 
   const { status } = await request(app())
@@ -118,11 +145,11 @@ test("PUT /messages 404", async () => {
   expect(status).toBe(404);
 });
 
-test("PUT /messages dont confirm same message twice", async () => {
-  await request(app()).post(`${apiRoot}`).send(testMessageBody);
+test('PUT /messages dont confirm same message twice', async () => {
+  await sampleInsert();
 
   const {
-    body: [firstMessage],
+    body: [firstMessage]
   } = await request(app()).get(`${apiRoot}`);
 
   const { id: firstMessageId } = firstMessage;
