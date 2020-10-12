@@ -2,12 +2,18 @@ import { Mutex } from 'async-mutex';
 
 import { messageConfirmationWaiting } from '../../config';
 
-const messagesStorage = {};
+let messagesStorage = {};
 let nextMessageId = 1;
 const mutex = new Mutex();
 
 const messages = () => Object.values(messagesStorage);
 const withMutex = async callback => await mutex.runExclusive(callback);
+
+// Used only for testing purposes
+const restart = () => {
+  messagesStorage = {};
+  nextMessageId = 1;
+};
 
 const insert = async (messageBody) =>
   await withMutex(async () => {
@@ -53,4 +59,4 @@ const restoreUnconfirmed = async () =>
     });
   });
 
-export default { insert, consume, deleteMessage, restoreUnconfirmed };
+export default { insert, consume, deleteMessage, restoreUnconfirmed, restart };
