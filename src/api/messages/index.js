@@ -4,8 +4,8 @@ import { create, index, show, update, destroy } from './controller';
 
 const router = new Router();
 
+router.get('/', query(), index);
 router.post('/', create);
-router.get('/all', query(), index);
 router.get('/:id', show);
 router.put('/:id', update);
 router.delete('/:id', destroy);
