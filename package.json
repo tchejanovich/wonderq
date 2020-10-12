@@ -18,7 +18,9 @@
     "testEnvironment": "node",
     "setupFilesAfterEnv": [
       "<rootDir>/test/setup.js"
-    ]
+    ],
+    "verbose": false,
+    "silent": false
   },
   "devDependencies": {
     "apidoc": "^0.20.0",
