@@ -37,7 +37,7 @@ const deleteMessage = async (messageId) =>
       delete messagesStorage[messageId];
       return message;
     }
-    return {};
+    return -1; // Result -1 means there is no consumed message with the specified messageId
   });
 
 const restoreUnconfirmed = async () =>
